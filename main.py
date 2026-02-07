@@ -17,10 +17,6 @@ music_on = True
 
 map_grid = []
 
-
-# --------------------------------------------------
-# MAP
-# --------------------------------------------------
 def generate_map():
     global map_grid
     map_grid = []
@@ -42,10 +38,6 @@ def is_wall(x, y):
         return True
     return map_grid[y][x] == 1
 
-
-# --------------------------------------------------
-# AUDIO
-# --------------------------------------------------
 def play_music():
     if music_on:
         music.play("bg_music")
@@ -55,10 +47,6 @@ def play_music():
 def stop_music():
     music.stop()
 
-
-# --------------------------------------------------
-# BASE ANIMATED ENTITY
-# --------------------------------------------------
 class AnimatedEntity:
     def __init__(self, grid_x, grid_y, animations, speed):
         self.grid_x = grid_x
@@ -76,7 +64,10 @@ class AnimatedEntity:
 
         self.speed = speed
         self.actor = Actor(self.animations[self.state][0])
-        self.actor.pos = self.x, self.y
+        self.actor.pos = (
+            self.x + TILE_SIZE // 2,
+            self.y + TILE_SIZE // 2,
+        )
 
     def move_to(self, grid_x, grid_y):
         self.grid_x = grid_x
@@ -87,7 +78,11 @@ class AnimatedEntity:
     def update_position(self, dt):
         self.x += (self.target_x - self.x) * self.speed * dt
         self.y += (self.target_y - self.y) * self.speed * dt
-        self.actor.pos = self.x, self.y
+
+        self.actor.pos = (
+            self.x + TILE_SIZE // 2,
+            self.y + TILE_SIZE // 2,
+        )
 
     def update_animation(self, dt):
         self.anim_timer += dt
@@ -99,10 +94,6 @@ class AnimatedEntity:
     def draw(self):
         self.actor.draw()
 
-
-# --------------------------------------------------
-# PLAYER
-# --------------------------------------------------
 PLAYER_ANIMATIONS = {
     "idle_down": [
         "player_idle_down_0",
@@ -145,11 +136,6 @@ class Player(AnimatedEntity):
         self.update_position(dt)
         self.update_animation(dt)
 
-
-
-# --------------------------------------------------
-# ENEMY
-# --------------------------------------------------
 ENEMY_ANIMATIONS = {
     "idle_down": ["enemy_0"],
     "walk": [
@@ -157,9 +143,6 @@ ENEMY_ANIMATIONS = {
         "roach_walk_1",
     ],
 }
-
-
-
 class Enemy(AnimatedEntity):
     def __init__(self, x, y):
         super().__init__(x, y, ENEMY_ANIMATIONS, speed=6)
@@ -189,17 +172,17 @@ class Enemy(AnimatedEntity):
         self.update_position(dt)
         self.update_animation(dt)
 
-
-# --------------------------------------------------
-# COIN
-# --------------------------------------------------
 class Coin:
     def __init__(self, x, y):
+        self.grid_x = x
+        self.grid_y = y
+
         self.actor = Actor("coin_0")
         self.actor.pos = (
             x * TILE_SIZE + TILE_SIZE // 2,
             y * TILE_SIZE + TILE_SIZE // 2,
         )
+
         self.frame = 0
         self.timer = 0
 
@@ -213,10 +196,6 @@ class Coin:
     def draw(self):
         self.actor.draw()
 
-
-# --------------------------------------------------
-# GAME OBJECTS
-# --------------------------------------------------
 player = None
 enemies = []
 coins = []
@@ -228,19 +207,11 @@ btn_start = Rect((WIDTH // 2 - 100, 160), (200, 40))
 btn_music = Rect((WIDTH // 2 - 100, 220), (200, 40))
 btn_exit = Rect((WIDTH // 2 - 100, 280), (200, 40))
 
-
-# --------------------------------------------------
-# UI
-# --------------------------------------------------
 def draw_button(rect, text):
     screen.draw.filled_rect(rect, (70, 90, 140))
     screen.draw.rect(rect, "white")
     screen.draw.text(text, center=rect.center, fontsize=26)
 
-
-# --------------------------------------------------
-# GAME LOOP
-# --------------------------------------------------
 def update(dt):
     global game_state, coins_collected
 
@@ -257,11 +228,12 @@ def update(dt):
 
     for coin in coins[:]:
         coin.update(dt)
-        if coin.actor.colliderect(player.actor):
+        if coin.grid_x == player.grid_x and coin.grid_y == player.grid_y:
             coins.remove(coin)
             coins_collected += 1
             if music_on:
                 sounds.coin.play()
+
 
             if coins_collected == total_coins:
                 stop_music()
@@ -273,10 +245,10 @@ def draw():
 
     if game_state == "menu":
         screen.fill((30, 30, 60))
-        screen.draw.text("ACTION HERO", center=(WIDTH // 2, 80), fontsize=50)
-        draw_button(btn_start, "START")
-        draw_button(btn_music, f"MUSIC: {'ON' if music_on else 'OFF'}")
-        draw_button(btn_exit, "EXIT")
+        screen.draw.text("TESTE KODLAND", center=(WIDTH // 2, 80), fontsize=50)
+        draw_button(btn_start, "COMECAR")
+        draw_button(btn_music, f"MUSICA: {'ON' if music_on else 'OFF'}")
+        draw_button(btn_exit, "FECHAR")
 
     elif game_state == "playing":
         for y in range(MAP_H):
@@ -330,10 +302,6 @@ def on_mouse_down(pos):
     elif game_state in ("game_over", "win"):
         game_state = "menu"
 
-
-# --------------------------------------------------
-# RESET
-# --------------------------------------------------
 def reset_game():
     global player, enemies, coins, coins_collected
 
